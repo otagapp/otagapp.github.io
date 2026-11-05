@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Lojistik ve İkmal Otomasyon Sistemi (ALİOS)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        tactical: {
+                            900: '#0b0f19',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151',
+                            accent: '#10b981', // Emerald
+                            amber: '#f59e0b',
+                            crimson: '#ef4444',
+                            cyan: '#06b6d4',
+                            blue: '#3b82f6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Tactical UI Scrollbar and Glow Effects */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+        .glow-accent {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+        }
+        .glow-amber {
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+        }
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-tactical-900 text-gray-100 font-sans min-h-screen bg-grid-pattern antialiased selection:bg-tactical-accent selection:text-black">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-gray-800 bg-tactical-800/90 backdrop-blur sticky top-0 z-50 px-4 lg:px-8 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <div class="w-10 h-10 rounded bg-tactical-accent/10 border border-tactical-accent/40 flex items-center justify-center text-tactical-accent">
+                <i class="fa-solid fa-boxes-packing text-xl"></i>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="font-mono font-bold tracking-wider text-lg uppercase text-white">ALİOS <span class="text-xs text-tactical-accent font-mono font-normal">v4.2-AI</span></h1>
+                    <span class="px-2 py-0.5 text-[10px] uppercase tracking-wider font-mono bg-tactical-accent/20 text-tactical-accent rounded border border-tactical-accent/30 font-semibold">OTOMATİK İKMAL SİSTEMİ</span>
+                </div>
+                <p class="text-xs text-gray-400">Üs Bölgesi Otonom Lojistik ve Yük İntikal Destek Karar Portalı</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-6 text-xs font-mono">
+            <div class="hidden md:flex flex-col text-right">
+                <span class="text-gray-400">SİSTEM DURUMU</span>
+                <span class="text-tactical-accent flex items-center justify-end gap-1.5 font-bold">
+                    <span class="w-2 h-2 rounded-full bg-tactical-accent animate-pulse"></span> ÇEVRİMİÇİ / OTOMATİK MOD
+                </span>
+            </div>
+            <div class="border-l border-gray-700 h-8 hidden md:block"></div>
+            <div class="flex items-center space-x-2">
+                <button onclick="runSimulation()" class="bg-tactical-accent hover:bg-emerald-600 text-gray-950 px-4 py-2 rounded font-bold transition flex items-center gap-2 text-xs shadow-lg shadow-tactical-accent/20">
+                    <i class="fa-solid fa-microchip"></i> İKMAL PLANINI HESAPLA
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="p-4 lg:p-6 max-w-[1800px] mx-auto space-y-6">
+
+        <!-- Top Overview Metric Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Outpost Selection & Feasibility -->
+            <div class="bg-tactical-800 border border-gray-800 rounded-lg p-4 relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-xs text-gray-400 font-mono uppercase tracking-wider">Hedef Üs Bölgesi</span>
+                        <select id="outpostSelect" onchange="updateOutpostData()" class="mt-1 bg-tactical-900 text-white font-mono font-bold text-sm border border-gray-700 rounded px-2.5 py-1 focus:outline-none focus:border-tactical-accent w-full">
+                            <option value="ub1">ÜB-15 KARTEPE (Rakım: 2150m)</option>
+                            <option value="ub2">ÜB-08 KARTALTEPE (Rakım: 1840m)</option>
+                            <option value="ub3">ÜB-03 FIRTINA (Rakım: 2400m)</option>
+                        </select>
+                    </div>
+                    <div class="p-2 rounded bg-tactical-cyan/10 text-tactical-cyan border border-tactical-cyan/30">
+                        <i class="fa-solid fa-mountain-city text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-400 flex justify-between items-center border-t border-gray-800/80 pt-2 font-mono">
+                    <span>Erişim Yolu: <b id="roadTypeDisplay" class="text-white">Stabilize / Dağ Yolu</b></span>
+                    <span>Mesafe: <b class="text-white">42 km</b></span>
+                </div>
+            </div>
+
+            <!-- Weather Feasibility Status -->
+            <div class="bg-tactical-800 border border-gray-800 rounded-lg p-4 relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-xs text-gray-400 font-mono uppercase tracking-wider">İkmal Yapılabilirlik Penceresi</span>
+                        <div id="weatherStatusBadge" class="mt-1 text-sm font-bold font-mono text-tactical-accent flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> UYGUN (AÇIK PENCERE)
+                        </div>
+                    </div>
+                    <div class="p-2 rounded bg-tactical-amber/10 text-tactical-amber border border-tactical-amber/30">
+                        <i class="fa-solid fa-cloud-sun text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-400 flex justify-between items-center border-t border-gray-800/80 pt-2 font-mono">
+                    <span>Sis/Görüş: <b id="visibilityDisplay" class="text-white">4.5 km</b></span>
+                    <span>Yol Durumu: <b id="roadConditionDisplay" class="text-tactical-accent">AÇIK</b></span>
+                </div>
+            </div>
+
+            <!-- Calculated Critical Autonomy -->
+            <div class="bg-tactical-800 border border-gray-800 rounded-lg p-4 relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-xs text-gray-400 font-mono uppercase tracking-wider">Mevcut ÜB İdame Kalan Süre</span>
+                        <div id="minAutonomyDisplay" class="mt-1 text-2xl font-bold font-mono text-tactical-amber">
+                            4.2 Gün
+                        </div>
+                    </div>
+                    <div class="p-2 rounded bg-tactical-amber/10 text-tactical-amber border border-tactical-amber/30">
+                        <i class="fa-solid fa-hourglass-half text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-2 text-xs text-gray-400 flex justify-between items-center border-t border-gray-800/80 pt-2 font-mono">
+                    <span>Emniyet Eşiği: <b class="text-white">7.0 Gün</b></span>
+                    <span id="criticalItemTag" class="text-tactical-crimson font-bold">Kritik: YAKIT</span>
+                </div>
+            </div>
+
+            <!-- Auto Calculated Next Resupply Date -->
+            <div class="bg-tactical-800 border border-gray-800 rounded-lg p-4 relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-xs text-gray-400 font-mono uppercase tracking-wider">Otomatik Belirlenen İntikal Tarihi</span>
+                        <div id="calculatedResupplyDate" class="mt-1 text-xl font-bold font-mono text-tactical-cyan">
+                            08 KASIM 2026
+                        </div>
+                    </div>
+                    <div class="p-2 rounded bg-tactical-blue/10 text-tactical-blue border border-tactical-blue/30">
+                        <i class="fa-solid fa-calendar-check text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-2 text-xs text-gray-400 flex justify-between items-center border-t border-gray-800/80 pt-2 font-mono">
+                    <span>İlk İntikal Tarihi: <b id="firstConvoyDateDisplay" class="text-white">06/11/2026</b></span>
+                    <span>Durum: <b class="text-tactical-accent">Planlandı</b></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid Layout for Inputs & Configurations -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Left Panel (7 Cols): Outpost Stock & Weather & Cargo Library -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- 1 & 3: Outpost Stock Levels & Daily Burn Rates -->
+                <div class="bg-tactical-800 border border-gray-800 rounded-lg p-5">
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-800 mb-4">
+                        <h2 class="font-mono text-sm uppercase tracking-wider font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-cubes-stacked text-tactical-accent"></i> 1 & 3. Üs Bölgesi Stok ve Günlük Sarfiyat Durumu
+                        </h2>
+                        <span class="text-xs text-gray-400 font-mono">* Canlı Envanter / Günlük Tüketim</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs font-mono">
+                            <thead>
+                                <tr class="text-gray-400 border-b border-gray-800">
+                                    <th class="pb-2">MALZEME SINIFI</th>
+                                    <th class="pb-2">MEVCUT STOK</th>
+                                    <th class="pb-2">GÜNLÜK SARFİYAT</th>
+                                    <th class="pb-2">KALAN İDAME</th>
+                                    <th class="pb-2">DURUM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTableBody" class="divide-y divide-gray-800/60 text-gray-200">
+                                <!-- Dynamic Rows JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2 & 6: Weather Parameters & Forecast Feasibility Window -->
+                <div class="bg-tactical-800 border border-gray-800 rounded-lg p-5">
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-800 mb-4">
+                        <h2 class="font-mono text-sm uppercase tracking-wider font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-cloud-bolt text-tactical-amber"></i> 2 & 6. Hava Durumu ve İkmal Uygunluk Tahmini
+                        </h2>
+                        <span class="text-xs text-gray-400 font-mono">İlk İntikal Tarihi: 
+                            <input type="date" id="firstConvoyDate" value="2026-11-06" onchange="runSimulation()" class="bg-tactical-900 border border-gray-700 rounded px-2 py-0.5 text-white font-mono focus:border-tactical-accent">
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-tactical-900/80 p-3 rounded border border-gray-800">
+                            <label class="block text-[11px] text-gray-400 font-mono mb-1">SİS / GÖRÜŞ MESAFESİ</label>
+                            <div class="flex items-center gap-2">
+                                <input type="range" id="fogSlider" min="0.2" max="10" step="0.1" value="4.5" oninput="updateWeatherParams()" class="w-full accent-tactical-cyan">
+                                <span id="fogVal" class="font-mono text-xs font-bold w-12 text-right">4.5 km</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-tactical-900/80 p-3 rounded border border-gray-800">
+                            <label class="block text-[11px] text-gray-400 font-mono mb-1">HAVA YAĞIŞ/KAR DURUMU</label>
+                            <select id="weatherCondition" onchange="updateWeatherParams()" class="w-full bg-tactical-800 border border-gray-700 rounded text-xs p-1 font-mono text-white">
+                                <option value="clear">Açık / Parçalı Bulutlu</option>
+                                <option value="rain">Yağmurlu / Çamurlu Yol</option>
+                                <option value="snow">Yoğun Kar Yağışlı / Tipi</option>
+                                <option value="ice">Buzlanma / Yüksek Risk</option>
+                            </select>
+                        </div>
+
+                        <div class="bg-tactical-900/80 p-3 rounded border border-gray-800">
+                            <label class="block text-[11px] text-gray-400 font-mono mb-1">GÜZERGAH YOL DURUMU</label>
+                            <select id="roadConditionSelect" onchange="updateWeatherParams()" class="w-full bg-tactical-800 border border-gray-700 rounded text-xs p-1 font-mono text-white">
+                                <option value="open">Açık / Ulaşıma Uygun</option>
+                                <option value="restricted">Kısmen Kapalı (Zincir/Ağır Vasıta)</option>
+                                <option value="closed">Tamamen Kapalı (Heyelan/Çığ)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 5-Day Feasibility Timeline -->
+                    <div class="space-y-2">
+                        <span class="text-xs font-mono text-gray-400 block">ÖNÜMÜZDEKİ 5 GÜNÜN İKMAL UYGUNLUK TAHMİNİ:</span>
+                        <div id="weatherForecastGrid" class="grid grid-cols-5 gap-2 font-mono text-center">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Supply Cargo Library (Malzeme Veri Kütüphanesi) -->
+                <div class="bg-tactical-800 border border-gray-800 rounded-lg p-5">
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-800 mb-4">
+                        <h2 class="font-mono text-sm uppercase tracking-wider font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-boxes-stacked text-tactical-cyan"></i> 5. İkmal Malzemeleri Standart Veri Kütüphanesi
+                        </h2>
+                        <span class="text-xs text-gray-400 font-mono">Birim Hacim & Ağırlık Özellikleri</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
+                        <div class="bg-tactical-900 p-3 rounded border border-gray-800/80 hover:border-gray-700 transition">
+                            <div class="text-tactical-cyan font-bold mb-1 flex items-center justify-between">
+                                <span>YAKIT JELİKAN</span>
+                                <i class="fa-solid fa-gas-pump"></i>
+                            </div>
+                            <div class="text-gray-400">Ağırlık: <b class="text-white">20 kg</b></div>
+                            <div class="text-gray-400">Hacim: <b class="text-white">0.025 m³</b></div>
+                            <div class="text-gray-400 mt-1">İçerik: Motorun/Benzin</div>
+                        </div>
+
+                        <div class="bg-tactical-900 p-3 rounded border border-gray-800/80 hover:border-gray-700 transition">
+                            <div class="text-tactical-accent font-bold mb-1 flex items-center justify-between">
+                                <span>KUMANYA KUTUSU</span>
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                            <div class="text-gray-400">Ağırlık: <b class="text-white">15 kg</b></div>
+                            <div class="text-gray-400">Hacim: <b class="text-white">0.030 m³</b></div>
+                            <div class="text-gray-400 mt-1">İçerik: 10 Paket Operasyon Kumanyası</div>
+                        </div>
+
+                        <div class="bg-tactical-900 p-3 rounded border border-gray-800/80 hover:border-gray-700 transition">
+                            <div class="text-tactical-blue font-bold mb-1 flex items-center justify-between">
+                                <span>SU PALETİ</span>
+                                <i class="fa-solid fa-bottle-water"></i>
+                            </div>
+                            <div class="text-gray-400">Ağırlık: <b class="text-white">450 kg</b></div>
+                            <div class="text-gray-400">Hacim: <b class="text-white">0.650 m³</b></div>
+                            <div class="text-gray-400 mt-1">İçerik: 0.5L x 800 Şişe İçme Suyu</div>
+                        </div>
+
+                        <div class="bg-tactical-900 p-3 rounded border border-gray-800/80 hover:border-gray-700 transition">
+                            <div class="text-tactical-amber font-bold mb-1 flex items-center justify-between">
+                                <span>UN / ÇUVAL ERZAK</span>
+                                <i class="fa-solid fa-wheat-awn"></i>
+                            </div>
+                            <div class="text-gray-400">Ağırlık: <b class="text-white">50 kg</b></div>
+                            <div class="text-gray-400">Hacim: <b class="text-white">0.075 m³</b></div>
+                            <div class="text-gray-400 mt-1">İçerik: Un, Bakliyat, Kuru Gıda</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Panel (5 Cols): Convoy Fleet Specs & Automated Cargo Allocation -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- 4. Convoy Vehicle Fleet specs -->
+                <div class="bg-tactical-800 border border-gray-800 rounded-lg p-5">
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-800 mb-4">
+                        <h2 class="font-mono text-sm uppercase tracking-wider font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-truck-military text-tactical-accent"></i> 4. İntikale Katılacak Araç Filosu
+                        </h2>
+                        <button onclick="addNewVehicle()" class="text-xs bg-tactical-700 hover:bg-tactical-600 text-white px-2 py-1 rounded font-mono transition">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Araç Ekle
+                        </button>
+                    </div>
+
+                    <div id="vehicleList" class="space-y-3 font-mono text-xs">
+                        <!-- Dynamic Vehicle Cards Rendered Here -->
+                    </div>
+                </div>
+
+                <!-- 7, 8 & 9: Algorithmic Cargo Loading Plan & Manifest -->
+                <div class="bg-tactical-800 border border-gray-800 rounded-lg p-5">
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-800 mb-3">
+                        <h2 class="font-mono text-sm uppercase tracking-wider font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-check text-tactical-accent"></i> 7, 8, 9 & 10. Otomatik İntikal Yük Planı
+                        </h2>
+                        <span class="text-[10px] font-mono bg-tactical-accent/10 text-tactical-accent border border-tactical-accent/30 px-2 py-0.5 rounded">PERSONEL İNİSİYATİFİ KAPALI</span>
+                    </div>
+
+                    <div id="resupplyWarningBox" class="mb-4 p-3 rounded bg-tactical-cyan/10 border border-tactical-cyan/30 text-xs font-mono text-tactical-cyan">
+                        <!-- Dynamic calculated summary note -->
+                    </div>
+
+                    <!-- Optimized Vehicle Manifest Cards -->
+                    <div id="manifestOutput" class="space-y-4">
+                        <!-- Calculated manifest list inserted via JS -->
+                    </div>
+
+                    <!-- Manifest Action Bar -->
+                    <div class="mt-5 border-t border-gray-800 pt-4 flex items-center justify-between">
+                        <div class="text-xs font-mono text-gray-400">
+                            Toplam İntikal Hacmi: <span id="totalConvoyVolume" class="text-white font-bold">0.0 m³</span>
+                        </div>
+                        <button onclick="printManifest()" class="bg-tactical-700 hover:bg-tactical-600 text-white font-mono text-xs px-3 py-1.5 rounded transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-print"></i> İntikal Emri Yazdır / Çıktı Al
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Simple Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-tactical-800 border border-tactical-accent text-white px-4 py-3 rounded-lg shadow-2xl font-mono text-xs hidden flex items-center gap-3 z-50">
+        <i class="fa-solid fa-circle-check text-tactical-accent text-lg"></i>
+        <span id="toastMsg">İkmal otomasyon hesabı tamamlandı.</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Database of Outposts & Initial Stocks
+        const outposts = {
+            ub1: {
+                name: "ÜB-15 KARTEPE",
+                roadType: "Stabilize Dağ Yolu",
+                minSafetyDays: 7, // Emniyet threshold
+                items: [
+                    { id: 'fuel', name: 'Yakıt (Motorin/Benzin)', stock: 450, unit: 'Litre', burn: 90, unitWeight: 0.85, unitVol: 0.001, icon: 'fa-gas-pump', pkgName: 'Jelikan (20L)', pkgVol: 0.025, pkgWt: 20 },
+                    { id: 'rations', name: 'Operasyon Kumanyası', stock: 180, unit: 'Paket', burn: 30, unitWeight: 1.5, unitVol: 0.003, icon: 'fa-utensils', pkgName: 'Kumanya Kutusu (10 Pk)', pkgVol: 0.030, pkgWt: 15 },
+                    { id: 'water', name: 'İçme Suyu', stock: 1200, unit: 'Litre', burn: 200, unitWeight: 1.0, unitVol: 0.001, icon: 'fa-bottle-water', pkgName: 'Su Paleti (400L)', pkgVol: 0.650, pkgWt: 450 },
+                    { id: 'food', name: 'Kuru Gıda & Un & Erzak', stock: 350, unit: 'Kg', burn: 40, unitWeight: 1.0, unitVol: 0.0015, icon: 'fa-wheat-awn', pkgName: 'Erzak Çuvalı (50kg)', pkgVol: 0.075, pkgWt: 50 },
+                    { id: 'ammo', name: 'Mühimmat (7.62mm / 5.56mm)', stock: 15000, unit: 'Adet', burn: 500, unitWeight: 0.025, unitVol: 0.00005, icon: 'fa-box-archive', pkgName: 'Mühimmat Sandığı', pkgVol: 0.040, pkgWt: 35 }
+                ]
+            },
+            ub2: {
+                name: "ÜB-08 KARTALTEPE",
+                roadType: "Asfalt + Toprak Bağlantı",
+                minSafetyDays: 7,
+                items: [
+                    { id: 'fuel', name: 'Yakıt (Motorin/Benzin)', stock: 900, unit: 'Litre', burn: 100, unitWeight: 0.85, unitVol: 0.001, icon: 'fa-gas-pump', pkgName: 'Jelikan (20L)', pkgVol: 0.025, pkgWt: 20 },
+                    { id: 'rations', name: 'Operasyon Kumanyası', stock: 320, unit: 'Paket', burn: 40, unitWeight: 1.5, unitVol: 0.003, icon: 'fa-utensils', pkgName: 'Kumanya Kutusu (10 Pk)', pkgVol: 0.030, pkgWt: 15 },
+                    { id: 'water', name: 'İçme Suyu', stock: 2400, unit: 'Litre', burn: 250, unitWeight: 1.0, unitVol: 0.001, icon: 'fa-bottle-water', pkgName: 'Su Paleti (400L)', pkgVol: 0.650, pkgWt: 450 },
+                    { id: 'food', name: 'Kuru Gıda & Un & Erzak', stock: 600, unit: 'Kg', burn: 50, unitWeight: 1.0, unitVol: 0.0015, icon: 'fa-wheat-awn', pkgName: 'Erzak Çuvalı (50kg)', pkgVol: 0.075, pkgWt: 50 },
+                    { id: 'ammo', name: 'Mühimmat (7.62mm / 5.56mm)', stock: 25000, unit: 'Adet', burn: 600, unitWeight: 0.025, unitVol: 0.00005, icon: 'fa-box-archive', pkgName: 'Mühimmat Sandığı', pkgVol: 0.040, pkgWt: 35 }
+                ]
+            },
+            ub3: {
+                name: "ÜB-03 FIRTINA",
+                roadType: "Yüksek İrtifa Kayalık Yol",
+                minSafetyDays: 8,
+                items: [
+                    { id: 'fuel', name: 'Yakıt (Motorin/Benzin)', stock: 300, unit: 'Litre', burn: 85, unitWeight: 0.85, unitVol: 0.001, icon: 'fa-gas-pump', pkgName: 'Jelikan (20L)', pkgVol: 0.025, pkgWt: 20 },
+                    { id: 'rations', name: 'Operasyon Kumanyası', stock: 120, unit: 'Paket', burn: 25, unitWeight: 1.5, unitVol: 0.003, icon: 'fa-utensils', pkgName: 'Kumanya Kutusu (10 Pk)', pkgVol: 0.030, pkgWt: 15 },
+                    { id: 'water', name: 'İçme Suyu', stock: 800, unit: 'Litre', burn: 180, unitWeight: 1.0, unitVol: 0.001, icon: 'fa-bottle-water', pkgName: 'Su Paleti (400L)', pkgVol: 0.650, pkgWt: 450 },
+                    { id: 'food', name: 'Kuru Gıda & Un & Erzak', stock: 200, unit: 'Kg', burn: 30, unitWeight: 1.0, unitVol: 0.0015, icon: 'fa-wheat-awn', pkgName: 'Erzak Çuvalı (50kg)', pkgVol: 0.075, pkgWt: 50 },
+                    { id: 'ammo', name: 'Mühimmat (7.62mm / 5.56mm)', stock: 10000, unit: 'Adet', burn: 400, unitWeight: 0.025, unitVol: 0.00005, icon: 'fa-box-archive', pkgName: 'Mühimmat Sandığı', pkgVol: 0.040, pkgWt: 35 }
+                ]
+            }
+        };
+
+        // Vehicles Fleet Database
+        let fleet = [
+            { id: 1, name: "BMC KAMYON (4x4) - ARAÇ #01", maxWeightKg: 5000, maxVolumeM3: 18.0, assignedItems: [] },
+            { id: 2, name: "UNIMOG TAKTİK İKMAL - ARAÇ #02", maxWeightKg: 3000, maxVolumeM3: 11.5, assignedItems: [] },
+            { id: 3, name: "ZIRHLI İKMAL ARACI - ARAÇ #03", maxWeightKg: 2500, maxVolumeM3: 8.0, assignedItems: [] }
+        ];
+
+        // System Initialization
+        window.onload = function() {
+            updateOutpostData();
+            runSimulation();
+        }
+
+        function updateWeatherParams() {
+            const fog = parseFloat(document.getElementById('fogSlider').value);
+            document.getElementById('fogVal').innerText = fog + ' km';
+            document.getElementById('visibilityDisplay').innerText = fog + ' km';
+            
+            const roadCond = document.getElementById('roadConditionSelect').value;
+            const roadDisp = document.getElementById('roadConditionDisplay');
+            if (roadCond === 'open') {
+                roadDisp.innerText = 'AÇIK';
+                roadDisp.className = 'text-tactical-accent font-bold';
+            } else if (roadCond === 'restricted') {
+                roadDisp.innerText = 'ZİNCİR GEREKLİ';
+                roadDisp.className = 'text-tactical-amber font-bold';
+            } else {
+                roadDisp.innerText = 'KAPALI / RİSKLİ';
+                roadDisp.className = 'text-tactical-crimson font-bold';
+            }
+
+            runSimulation();
+        }
+
+        function updateOutpostData() {
+            const selectedKey = document.getElementById('outpostSelect').value;
+            const outpost = outposts[selectedKey];
+            document.getElementById('roadTypeDisplay').innerText = outpost.roadType;
+            renderStockTable();
+            runSimulation();
+        }
+
+        function renderStockTable() {
+            const selectedKey = document.getElementById('outpostSelect').value;
+            const outpost = outposts[selectedKey];
+            const tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = '';
+
+            outpost.items.forEach((item, index) => {
+                const daysRemaining = (item.stock / item.burn).toFixed(1);
+                const isCritical = daysRemaining < outpost.minSafetyDays;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-tactical-900/40 transition";
+
+                tr.innerHTML = `
+                    <td class="py-2.5 flex items-center gap-2">
+                        <i class="fa-solid ${item.icon} text-tactical-accent w-4 text-center"></i>
+                        <span class="font-bold text-white">${item.name}</span>
+                    </td>
+                    <td class="py-2.5">
+                        <input type="number" value="${item.stock}" onchange="updateItemStock(${index}, this.value)" class="w-20 bg-tactical-900 border border-gray-700 rounded px-1.5 py-0.5 text-white font-mono focus:border-tactical-accent text-xs">
+                        <span class="text-gray-400 text-[10px]">${item.unit}</span>
+                    </td>
+                    <td class="py-2.5">
+                        <input type="number" value="${item.burn}" onchange="updateItemBurn(${index}, this.value)" class="w-16 bg-tactical-900 border border-gray-700 rounded px-1.5 py-0.5 text-white font-mono focus:border-tactical-accent text-xs">
+                        <span class="text-gray-400 text-[10px]">${item.unit}/gün</span>
+                    </td>
+                    <td class="py-2.5">
+                        <span class="font-bold ${isCritical ? 'text-tactical-crimson' : 'text-tactical-accent'}">${daysRemaining} Gün</span>
+                    </td>
+                    <td class="py-2.5">
+                        ${isCritical ? 
+                            `<span class="px-2 py-0.5 bg-tactical-crimson/20 text-tactical-crimson border border-tactical-crimson/40 rounded text-[10px] font-bold animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i> KRİTİK</span>` : 
+                            `<span class="px-2 py-0.5 bg-tactical-accent/20 text-tactical-accent border border-tactical-accent/40 rounded text-[10px] font-bold"><i class="fa-solid fa-check"></i> YETERLİ</span>`
+                        }
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateItemStock(index, val) {
+            const selectedKey = document.getElementById('outpostSelect').value;
+            outposts[selectedKey].items[index].stock = parseFloat(val) || 0;
+            renderStockTable();
+            runSimulation();
+        }
+
+        function updateItemBurn(index, val) {
+            const selectedKey = document.getElementById('outpostSelect').value;
+            outposts[selectedKey].items[index].burn = parseFloat(val) || 1;
+            renderStockTable();
+            runSimulation();
+        }
+
+        // Fleet Management Functions
+        function renderFleet() {
+            const container = document.getElementById('vehicleList');
+            container.innerHTML = '';
+
+            fleet.forEach((v) => {
+                // Calculate current allocated weight/volume
+                let usedWt = 0;
+                let usedVol = 0;
+
+                v.assignedItems.forEach(ai => {
+                    usedWt += ai.totalWeight;
+                    usedVol += ai.totalVolume;
+                });
+
+                const wtPct = Math.min(100, (usedWt / v.maxWeightKg) * 100).toFixed(1);
+                const volPct = Math.min(100, (usedVol / v.maxVolumeM3) * 100).toFixed(1);
+
+                const card = document.createElement('div');
+                card.className = "bg-tactical-900 p-3.5 rounded border border-gray-800 space-y-3";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-truck-front text-tactical-accent"></i>
+                            <input type="text" value="${v.name}" onchange="v.name=this.value" class="bg-transparent font-bold text-white focus:outline-none focus:border-b border-tactical-accent">
+                        </div>
+                        <button onclick="removeVehicle(${v.id})" class="text-gray-500 hover:text-tactical-crimson"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-[11px]">
+                        <div>
+                            <div class="flex justify-between text-gray-400 mb-1">
+                                <span>Ağırlık Kapasitesi:</span>
+                                <span>${usedWt.toFixed(0)} / ${v.maxWeightKg} kg</span>
+                            </div>
+                            <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                                <div class="h-full ${wtPct > 95 ? 'bg-tactical-crimson' : 'bg-tactical-accent'} transition-all duration-300" style="width: ${wtPct}%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-gray-400 mb-1">
+                                <span>Hacim Kapasitesi:</span>
+                                <span>${usedVol.toFixed(2)} / ${v.maxVolumeM3} m³</span>
+                            </div>
+                            <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                                <div class="h-full ${volPct > 95 ? 'bg-tactical-crimson' : 'bg-tactical-cyan'} transition-all duration-300" style="width: ${volPct}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function addNewVehicle() {
+            const newId = Date.now();
+            fleet.push({
+                id: newId,
+                name: `TAKTİK İKMAL ARAÇ #${fleet.length + 1}`,
+                maxWeightKg: 4000,
+                maxVolumeM3: 14.0,
+                assignedItems: []
+            });
+            runSimulation();
+        }
+
+        function removeVehicle(id) {
+            if (fleet.length <= 1) {
+                showToast("En az 1 adet ikmal aracı kalmalıdır.");
+                return;
+            }
+            fleet = fleet.filter(v => v.id !== id);
+            runSimulation();
+        }
+
+        // Core AI & Automated Resupply Simulation Engine
+        function runSimulation() {
+            const selectedKey = document.getElementById('outpostSelect').value;
+            const outpost = outposts[selectedKey];
+            const fog = parseFloat(document.getElementById('fogSlider').value);
+            const weatherCond = document.getElementById('weatherCondition').value;
+            const roadCond = document.getElementById('roadConditionSelect').value;
+            const firstDateVal = document.getElementById('firstConvoyDate').value;
+            const firstDate = new Date(firstDateVal || Date.now());
+
+            // 1. Calculate Minimum Autonomy Days across all inventory items
+            let minDays = 999;
+            let criticalItemName = '';
+
+            outpost.items.forEach(item => {
+                const days = item.stock / item.burn;
+                if (days < minDays) {
+                    minDays = days;
+                    criticalItemName = item.name.split(' ')[0];
+                }
+            });
+
+            document.getElementById('minAutonomyDisplay').innerText = `${minDays.toFixed(1)} Gün`;
+            document.getElementById('criticalItemTag').innerText = `Kritik: ${criticalItemName}`;
+
+            // 2. Weather & Feasibility Simulation for next 5 days
+            const weatherForecastGrid = document.getElementById('weatherForecastGrid');
+            weatherForecastGrid.innerHTML = '';
+            
+            let feasibleResupplyDayOffset = -1;
+
+            for (let i = 0; i < 5; i++) {
+                const fDate = new Date(firstDate);
+                fDate.setDate(fDate.getDate() + i);
+                
+                // Weather risk formula simulation
+                let isFeasible = true;
+                let reason = "UYGUN";
+
+                // Simulating slightly varying fog and weather over days
+                const simFog = Math.max(0.2, (fog + (i * 0.4) - (i === 2 ? 2.5 : 0))).toFixed(1);
+                
+                if (simFog < 1.0) {
+                    isFeasible = false;
+                    reason = "YOĞUN SİS";
+                } else if (weatherCond === 'ice' || roadCond === 'closed') {
+                    isFeasible = false;
+                    reason = "YOL KAPALI";
+                } else if (weatherCond === 'snow' && i % 2 === 1) {
+                    isFeasible = false;
+                    reason = "TİPİ/KAR";
+                }
+
+                if (isFeasible && feasibleResupplyDayOffset === -1 && (i >= Math.floor(minDays - 2) || i === 0)) {
+                    feasibleResupplyDayOffset = i;
+                }
+
+                const dayCard = document.createElement('div');
+                dayCard.className = `p-2 rounded border text-xs ${isFeasible ? 'bg-tactical-accent/10 border-tactical-accent/40 text-tactical-accent' : 'bg-tactical-crimson/10 border-tactical-crimson/40 text-tactical-crimson'}`;
+                dayCard.innerHTML = `
+                    <div class="font-bold">${fDate.getDate()} ${fDate.toLocaleString('tr-TR', { month: 'short' })}</div>
+                    <div class="text-[10px] mt-1 opacity-80">${simFog} km görüş</div>
+                    <div class="text-[10px] font-bold mt-1 uppercase">${reason}</div>
+                `;
+                weatherForecastGrid.appendChild(dayCard);
+            }
+
+            // Target Resupply Date Decision
+            if (feasibleResupplyDayOffset === -1) feasibleResupplyDayOffset = 1; // Default fallback
+            const targetDate = new Date(firstDate);
+            targetDate.setDate(targetDate.getDate() + feasibleResupplyDayOffset);
+
+            const options = { day: '2-digit', month: 'LONG', year: 'numeric' };
+            document.getElementById('calculatedResupplyDate').innerText = targetDate.toLocaleDateString('tr-TR', options).toUpperCase();
+            document.getElementById('firstConvoyDateDisplay').innerText = firstDate.toLocaleDateString('tr-TR');
+
+            // 3. Automated Cargo Demand Calculation
+            // Calculate how much stock is needed to restore all items back to 15 Days of Safety Autonomy
+            const targetAutonomyDays = 15;
+            let requiredCargoItems = [];
+
+            outpost.items.forEach(item => {
+                const totalConsumptionTillResupply = item.burn * feasibleResupplyDayOffset;
+                const projectedStockAtResupply = Math.max(0, item.stock - totalConsumptionTillResupply);
+                const targetStockLevel = item.burn * targetAutonomyDays;
+                const deficitUnits = Math.max(0, targetStockLevel - projectedStockAtResupply);
+
+                if (deficitUnits > 0) {
+                    // Calculate package counts
+                    let pkgsNeeded = 0;
+                    if (item.id === 'fuel') pkgsNeeded = Math.ceil(deficitUnits / 20); // 20L per Jelikan
+                    else if (item.id === 'rations') pkgsNeeded = Math.ceil(deficitUnits / 10); // 10 Pk per Box
+                    else if (item.id === 'water') pkgsNeeded = Math.ceil(deficitUnits / 400); // 400L per Pallet
+                    else if (item.id === 'food') pkgsNeeded = Math.ceil(deficitUnits / 50); // 50kg per Sack
+                    else if (item.id === 'ammo') pkgsNeeded = Math.ceil(deficitUnits / 1000); // 1000 rounds per Crate
+
+                    requiredCargoItems.push({
+                        id: item.id,
+                        name: item.name,
+                        pkgName: item.pkgName,
+                        count: pkgsNeeded,
+                        unitWeight: item.pkgWt,
+                        unitVolume: item.pkgVol
+                    });
+                }
+            });
+
+            // 4. Automated Cargo Loading & Vehicle Allocation Algorithm (Bin-Packing Simulation)
+            // Reset fleet allocations
+            fleet.forEach(v => v.assignedItems = []);
+
+            let totalVolumeSum = 0;
+
+            requiredCargoItems.forEach(cargo => {
+                let remainingCount = cargo.count;
+
+                for (let v of fleet) {
+                    if (remainingCount <= 0) break;
+
+                    let usedWt = v.assignedItems.reduce((acc, curr) => acc + curr.totalWeight, 0);
+                    let usedVol = v.assignedItems.reduce((acc, curr) => acc + curr.totalVolume, 0);
+
+                    let availWt = v.maxWeightKg - usedWt;
+                    let availVol = v.maxVolumeM3 - usedVol;
+
+                    // How many packages fit in this vehicle?
+                    const fitByWt = Math.floor(availWt / cargo.unitWeight);
+                    const fitByVol = Math.floor(availVol / cargo.unitVolume);
+                    const canFitCount = Math.max(0, Math.min(remainingCount, fitByWt, fitByVol));
+
+                    if (canFitCount > 0) {
+                        const totalWt = canFitCount * cargo.unitWeight;
+                        const totalVol = canFitCount * cargo.unitVolume;
+
+                        v.assignedItems.push({
+                            name: cargo.pkgName,
+                            count: canFitCount,
+                            totalWeight: totalWt,
+                            totalVolume: totalVol
+                        });
+
+                        remainingCount -= canFitCount;
+                        totalVolumeSum += totalVol;
+                    }
+                }
+            });
+
+            // Update Vehicle Fleet visual representation
+            renderFleet();
+
+            // Render Output Manifest
+            renderManifest(feasibleResupplyDayOffset, totalVolumeSum);
+        }
+
+        function renderManifest(daysOffset, totalVolumeSum) {
+            const outputDiv = document.getElementById('manifestOutput');
+            const warningBox = document.getElementById('resupplyWarningBox');
+            outputDiv.innerHTML = '';
+
+            warningBox.innerHTML = `
+                <div class="flex items-center gap-2 font-bold mb-1">
+                    <i class="fa-solid fa-circle-info"></i> OTOMATİK HESAPLAMA ÖZETİ
+                </div>
+                <div>
+                    İntikale kadar geçen <b>${daysOffset} günde</b> gerçekleşecek tahmini sarfiyat hesaba katılmış ve ÜB stokları <b>15 günlük emniyet seviyesine</b> çıkarılacak şekilde yük planlaması yapılmıştır.
+                </div>
+            `;
+
+            document.getElementById('totalConvoyVolume').innerText = `${totalVolumeSum.toFixed(2)} m³`;
+
+            fleet.forEach((v, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-tactical-900/90 border border-gray-800 rounded p-3 text-xs font-mono space-y-2";
+                
+                let itemListHtml = '';
+                if (v.assignedItems.length === 0) {
+                    itemListHtml = `<div class="text-gray-500 italic">Bu araca yük atanmadı (Kapasite boşa çıktı).</div>`;
+                } else {
+                    v.assignedItems.forEach(item => {
+                        itemListHtml += `
+                            <div class="flex justify-between items-center bg-tactical-800/80 p-2 rounded border border-gray-800">
+                                <span class="text-white font-semibold">${item.name}</span>
+                                <div class="text-right">
+                                    <span class="text-tactical-accent font-bold">${item.count} Adet/Kutu</span>
+                                    <span class="text-gray-400 text-[10px] block">${item.totalWeight} kg | ${item.totalVolume.toFixed(2)} m³</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                        <span class="font-bold text-tactical-cyan flex items-center gap-2">
+                            <i class="fa-solid fa-truck-ramp-box"></i> ${v.name}
+                        </span>
+                        <span class="text-[10px] text-gray-400">YÜK MANİFESTOSU (#00${idx + 1})</span>
+                    </div>
+                    <div class="space-y-1.5 pt-1">
+                        ${itemListHtml}
+                    </div>
+                `;
+
+                outputDiv.appendChild(card);
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function printManifest() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
